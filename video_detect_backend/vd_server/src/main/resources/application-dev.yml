@@ -1,0 +1,64 @@
+server:
+  port: 8081
+spring:
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/video_detect?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: 111111
+#      password: 123456
+      usePingMethod: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  redis:
+    host: 127.0.0.1
+    port: 6379
+#    password:
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  servlet:
+    multipart:
+      max-file-size: 60MB
+      max-request-size: 60MB
+mybatis-plus:
+  type-aliases-package: com.zhuanghd.entity
+  mapper-locations: classpath:mapper/*.xml
+  global-config:
+    db-config:
+      table-prefix: vd_
+      id-type: auto
+logging:
+  level:
+    com:
+      zhuanghd:
+        mapper: debug
+        service: debug
+        controller: debug
+vd:
+  jwt:
+    user-secret-key: resudv
+    user-ttl: 86400000 # 24*60*60*1000 ms
+    user-token-name: token
+  redis:
+    address: redis://127.0.0.1:6379
+#    password:
+  upload:
+    loc: "E:/vddt" #TODO 这个暂时无法使用
+    uploadFolder: "E:/vddt/"
+knife4j:
+  enable: true
+
+#qiniu:
+#  kodo:
+#    accessKey: Q6sUeU7od23jUJ55330EXRsDY8vvZDRXIh0ZcWIz
+#    secretKey: Hw0APLn-_hHcAymwIOFCppVphHVC_8k9EV_Z5aUL
+#    bucket: video-detect
+#    domain: sm5ve1now.hn-bkt.clouddn.com

@@ -1,0 +1,827 @@
+{
+	"info": {
+		"_postman_id": "1f66b8c9-a08b-479c-908f-2444471bbfbe",
+		"name": "VDDT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43037672"
+	},
+	"item": [
+		{
+			"name": "用户模块",
+			"item": [
+				{
+					"name": "用户登录",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"phone\": \"13430270008\",\r\n    \"password\": \"548548\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/user/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "用户退出",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MzM4MTQ2NjMsInVzZXJJZCI6MX0.NiCRZyiZ53RMorJoayJeCc33Kt7fsYwk1PAUAru3y6g",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/user/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "发送验证码",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/user/sendCaptcha?phone=13430270927",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"sendCaptcha"
+							],
+							"query": [
+								{
+									"key": "phone",
+									"value": "13430270927"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "用户注册",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"phone\": \"13928205666\",\r\n    \"password\": \"123456\",\r\n    \"second_password\": \"123456\",\r\n    \"captcha\": \"994198\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/user/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "用户登录2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"phone\":\"13430270927\",\r\n    \"captcha\":\"593984\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/user/login2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"login2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "qiniu云测试",
+			"item": [
+				{
+					"name": "上传测试",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "localFilePath",
+									"value": "E:\\照片\\undefined\\4444131.png",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8081/qiniukodo/upload",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"qiniukodo",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": true,\r\n    \"code\": \"200\",\r\n    \"message\": \"获取成功\",\r\n    \"data\": {\r\n        \"list\": [\r\n            {\r\n                \"store_id\": 1,\r\n                \"store_name\": \"feima的一家店\",\r\n                \"goods\": [\r\n                    {\r\n                        \"id\": 27,\r\n                        \"goods_id\": 23,\r\n                        \"good_name\": \"PDA-feima1\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071259113192.png\\\"]\",\r\n                        \"price\": \"59.99000\",\r\n                        \"currency\": \"502\",\r\n                        \"number\": 2,\r\n                        \"store_name\": \"feima的一家店\",\r\n                        \"store_id\": 1\r\n                    },\r\n                    {\r\n                        \"id\": 38,\r\n                        \"goods_id\": 24,\r\n                        \"good_name\": \"PDA-feima\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071259113192.png\\\"]\",\r\n                        \"price\": \"59.99000\",\r\n                        \"currency\": \"502\",\r\n                        \"number\": 1,\r\n                        \"store_name\": \"feima的一家店\",\r\n                        \"store_id\": 1\r\n                    },\r\n                    {\r\n                        \"id\": 80,\r\n                        \"goods_id\": 24,\r\n                        \"good_name\": \"PDA-feima\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071259113192.png\\\"]\",\r\n                        \"price\": \"59.99000\",\r\n                        \"currency\": \"502\",\r\n                        \"number\": 1,\r\n                        \"store_name\": \"feima的一家店\",\r\n                        \"store_id\": 1\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"store_id\": 6,\r\n                \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                \"goods\": [\r\n                    {\r\n                        \"id\": 34,\r\n                        \"goods_id\": 10,\r\n                        \"good_name\": \"电动旋转清洁刷,280 RPM 电机和可调节手柄,厨房,浴室和淋浴清洁刷,电动 2000 mAh 电池,清洁刷带长手柄,红色\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545113229.jpg\\\",\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545152833.jpg\\\"]\",\r\n                        \"price\": \"100.00000\",\r\n                        \"currency\": \"142\",\r\n                        \"number\": 2,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    },\r\n                    {\r\n                        \"id\": 35,\r\n                        \"goods_id\": 10,\r\n                        \"good_name\": \"电动旋转清洁刷,280 RPM 电机和可调节手柄,厨房,浴室和淋浴清洁刷,电动 2000 mAh 电池,清洁刷带长手柄,红色\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545113229.jpg\\\",\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545152833.jpg\\\"]\",\r\n                        \"price\": \"100.00000\",\r\n                        \"currency\": \"142\",\r\n                        \"number\": 2,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    },\r\n                    {\r\n                        \"id\": 36,\r\n                        \"goods_id\": 10,\r\n                        \"good_name\": \"电动旋转清洁刷,280 RPM 电机和可调节手柄,厨房,浴室和淋浴清洁刷,电动 2000 mAh 电池,清洁刷带长手柄,红色\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545113229.jpg\\\",\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545152833.jpg\\\"]\",\r\n                        \"price\": \"100.00000\",\r\n                        \"currency\": \"142\",\r\n                        \"number\": 3,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    },\r\n                    {\r\n                        \"id\": 41,\r\n                        \"goods_id\": 10,\r\n                        \"good_name\": \"电动旋转清洁刷,280 RPM 电机和可调节手柄,厨房,浴室和淋浴清洁刷,电动 2000 mAh 电池,清洁刷带长手柄,红色\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545113229.jpg\\\",\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071545152833.jpg\\\"]\",\r\n                        \"price\": \"100.00000\",\r\n                        \"currency\": \"142\",\r\n                        \"number\": 1,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    },\r\n                    {\r\n                        \"id\": 55,\r\n                        \"goods_id\": 11,\r\n                        \"good_name\": \"电动旋转清洁刷,无绳清洁刷,带 LED 显示屏,6 个可更换刷头,2 档速度,手持式电动淋浴刷,用于清洁地板、灌浆、窗户、浴缸、瓷砖、水槽、汽车\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071605485104.jpg\\\",\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/20241107160552220.jpg\\\"]\",\r\n                        \"price\": \"200.00000\",\r\n                        \"currency\": \"142\",\r\n                        \"number\": 2,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    },\r\n                    {\r\n                        \"id\": 84,\r\n                        \"goods_id\": 9,\r\n                        \"good_name\": \"PDA\",\r\n                        \"main_pic\": \"[\\\"https:\\\\/\\\\/cdn-hy.kjgoods.com\\\\/202411071259113192.png\\\"]\",\r\n                        \"price\": \"59.99000\",\r\n                        \"currency\": \"502\",\r\n                        \"number\": 3,\r\n                        \"store_name\": \"广州市伟星供应链管理有限公司的一家店\",\r\n                        \"store_id\": 6\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"count\": 9\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/qiniukodo/listSpaceFiles",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"qiniukodo",
+								"listSpaceFiles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "视频模块",
+			"item": [
+				{
+					"name": "视频上传本地",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MzQyNDY3NjAsInVzZXJJZCI6MjgxODE0MzAzNDU4NTA4OH0.dmb1bl4ACEnQVgKuarlKWji46d_FY9rlDbgWKEcwZl0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/庄泓东/Downloads/下载.mp4"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8081/video/upload",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"video",
+								"upload"
+							],
+							"query": [
+								{
+									"key": "file",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "地址模块",
+			"item": [
+				{
+					"name": "添加地址",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"德庄中学\",\r\n    \"address\": \"不知道什么镇什么街道\",\r\n    \"province\": \"江西省\",\r\n    \"town\": \"北京市\",\r\n    \"area\": \"某某区\",\r\n    \"duty\": \"王大强\",\r\n    \"duty_tel\": \"13827481238\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/place/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "地址详情",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIxMTM0NTgsInVzZXJJZCI6MX0.iwHQwHtqHo-XXz47SKE6Q0vXkjrlcHhM29NZdBfkoPM",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/place/id/52569517506736128",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"id",
+								"52569517506736128"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "删除地址",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIxMTM0NTgsInVzZXJJZCI6MX0.iwHQwHtqHo-XXz47SKE6Q0vXkjrlcHhM29NZdBfkoPM",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/place/delete?id=52569517506736128",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "52569517506736128"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "修改地址",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIxMTM0NTgsInVzZXJJZCI6MX0.iwHQwHtqHo-XXz47SKE6Q0vXkjrlcHhM29NZdBfkoPM",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"曹阳二中\",\r\n    \"address\": \"不知道什么镇什么街道\",\r\n    \"province\": \"江西省\",\r\n    \"town\": \"北京市\",\r\n    \"area\": \"某某区\",\r\n    \"duty\": \"王大强\",\r\n    \"duty_tel\": \"13827481238\",\r\n    \"status\":\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/place/update/52569517506736128",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"update",
+								"52569517506736128"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "地址列表",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/place/list?area=某某区",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"list"
+							],
+							"query": [
+								{
+									"key": "area",
+									"value": "某某区"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "获取可用地址",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/place/get-place",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"place",
+								"get-place"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "设备模块",
+			"item": [
+				{
+					"name": "添加设备",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"place_id\":\"53536395733544961\",\r\n    \"name\": \"粉末灭火器\",\r\n    \"res\": \"xxx消防1有限公司\",\r\n    \"duty\": \"李元宝\",\r\n    \"duty_tel\": \"12345678910\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/device/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"device",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "设备详情",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/device/detail?id=53540172263895040",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"device",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "53540172263895040"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "删除设备",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/device/delete?id=53540776277225472",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"device",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "53540776277225472"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "修改设备",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"place_id\":\"53536395733544961\",\r\n    \"name\": \"粉末灭火器1\",\r\n    \"res\": \"xxx消防1有限公司\",\r\n    \"duty\": \"李元宝\",\r\n    \"duty_tel\": \"12345678910\",\r\n    \"status\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/device/modify/53539886745038848",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"device",
+								"modify",
+								"53539886745038848"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "设备列表",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/device/list?placeId=53536395733544960",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"device",
+								"list"
+							],
+							"query": [
+								{
+									"key": "placeId",
+									"value": "53536395733544960"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "检查模块",
+			"item": [
+				{
+					"name": "添加检查",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"duty\": \"吴亦凡2\",\r\n    \"duty_tel\": \"99999999999\",\r\n    \"place\": \"吴家大院\",\r\n    \"time\": 0.01\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/check/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"check",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "检查详情",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/check/detail?id=53553727365230592",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"check",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "53553727365230592"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "删除检查",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/check/delete?id=53554356464693248",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"check",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "53554356464693248"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "修改检查",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"duty\": \"吴亦凡4\",\r\n    \"duty_tel\": \"99999999999\",\r\n    \"place\": \"吴家大院\",\r\n    \"time\": 1,\r\n    \"situation\": \"螺丝松\",\r\n    \"score\": \"1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/check/modify/53554356464693248",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"check",
+								"modify",
+								"53554356464693248"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "检查列表",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDIzNDQ2MjYsInVzZXJJZCI6MTgxNDc1NjM4NDQ3MTA0MDF9.v4plZpBmQGkIn-84Lr87alLey336TR8V14tQPqpvev8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/check/list?current=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"check",
+								"list"
+							],
+							"query": [
+								{
+									"key": "duty",
+									"value": "吴",
+									"disabled": true
+								},
+								{
+									"key": "score",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "current",
+									"value": "2"
+								},
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
