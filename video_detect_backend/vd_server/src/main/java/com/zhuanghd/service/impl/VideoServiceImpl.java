@@ -28,7 +28,7 @@ import java.util.Objects;
 import static com.zhuanghd.constant.NormalConstant.WORKER_ID;
 
 /**
- * @author 庄泓东
+ * @author
  * @description 针对表【vd_video】的数据库操作Service实现
  * @createDate 2024-10-30 16:31:34
  */

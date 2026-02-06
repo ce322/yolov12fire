@@ -208,8 +208,8 @@ public class FireServiceImpl extends ServiceImpl<FireMapper, FireDO>
                 return false;
             }
             
-            // 根据概率设置标志
-            int fireFlag = (fireProbability != null && fireProbability >= 0.25) ? 1 : 0;
+            // 根据概率设置标志//
+            int fireFlag = (fireProbability != null && fireProbability >= 0.30) ? 1 : 0;
             int smokeFlag = (smokeProbability != null && smokeProbability >= 0.25) ? 1 : 0;
             
             // 设置开始和结束时间

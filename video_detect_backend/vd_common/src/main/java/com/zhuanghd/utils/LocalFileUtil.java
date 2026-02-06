@@ -15,7 +15,7 @@ public class LocalFileUtil {
 	public static String UPLOAD_FOLDER = "E:/vddt";
 	public static String THUMBNAIL_FOLDER = "E:/vddt/thumbnails";
 	public static String VIDEO_FOLDER = "E:/vddt/video";
-	public static String MODEL_PATH = "D:/code/java_project/video-detect/video_detect_yolo/ultralytics-main/best8.pt";
+	public static String MODEL_PATH = "D:/code/java_project/video-detect/video_detect_yolo/ultralytics-main/best12.pt";
 //	public static String MODEL_PATH = "E:/Graduation_project/7.program/video-detect/video_detect_yolo/ultralytics-main/best8.pt";
 
 	// 检查目录是否存在，不存在则创建

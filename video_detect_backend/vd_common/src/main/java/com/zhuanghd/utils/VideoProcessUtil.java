@@ -194,10 +194,11 @@ public class VideoProcessUtil {
                     "import json\n" +
                     "import os\n" +
                     "import cv2\n" +
+                    "from ultralytics import YOLO\n"+
                     "\n" +
-                    "# 添加ultralytics包的路径\n" +
-                    "sys.path.append('E:/Graduation_project/7.program/video-detect/video_detect_yolo/ultralytics-main')\n" +
-                    "from ultralytics import YOLO\n" +
+//                    "# 添加ultralytics包的路径\n" +
+//                    "sys.path.append('E:/Graduation_project/7.program/video-detect/video_detect_yolo/ultralytics-main')\n" +
+//                    "from ultralytics import YOLO\n" +
                     "\n" +
                     "# 打印路径确认\n" +
                     "print('Python Path:', sys.path)\n" +
@@ -227,7 +228,7 @@ public class VideoProcessUtil {
                     "# 执行视频预测并保存带有检测结果的视频\n" +
                     "output_dir = r'" + outputDir + "'\n" +
                     "print('Processing video:', video_path)\n" +
-                    "results = model.predict(source=video_path, save=True, project=output_dir, name='detection')\n" +
+                    "results = model.predict(source=video_path, conf=0.60, imgsz=640, iou=0.5, save=True, project=output_dir, name='detection')\n" +
                     "\n" +
                     "# 分析结果\n" +
                     "fire_conf = 0.0\n" +
@@ -268,8 +269,11 @@ public class VideoProcessUtil {
                     "    'Smoke': smoke_avg,\n" +
                     "    'Duration': video_duration\n" +
                     "}\n" +
+                    "print('boxes:1111111', r.boxes)\n" +
+                    "print('boxes attrs:2222222', dir(r.boxes))\n" +
                     "print('RESULT_JSON:', json.dumps(result))";
-            
+
+
             // 写入临时脚本文件
             try (java.io.FileWriter writer = new java.io.FileWriter(tempScript)) {
                 writer.write(pythonScript);
@@ -281,7 +285,7 @@ public class VideoProcessUtil {
             List<String> command = new ArrayList<>();
             command.add("cmd");
             command.add("/c");
-            command.add("conda activate D:\\work\\Anaconda3-2025.06-1\\envs\\yolov8 && python \"" + tempScript.getAbsolutePath() + "\"");
+            command.add("conda activate D:\\work\\Anaconda3-2025.06-1\\envs\\yolov12 && python \"" + tempScript.getAbsolutePath() + "\"");
 
 //            command.add("conda activate D:\\Env\\Conda_YOLO && python \"" + tempScript.getAbsolutePath() + "\"");
 //            command.add("conda activate yolov8 && python \"" + tempScript.getAbsolutePath() + "\"");
@@ -305,12 +309,12 @@ public class VideoProcessUtil {
                 if (line.contains("RESULT_JSON:")) {
                     String jsonResult = line.substring(line.indexOf("RESULT_JSON:") + "RESULT_JSON:".length()).trim();
                     log.info("捕获到JSON结果: {}", jsonResult);
-                    
+
                     try {
                         // 解析JSON字符串
                         if (jsonResult.contains("{") && jsonResult.contains("}")) {
                             jsonResult = jsonResult.replace("'", "\""); // 替换单引号为双引号
-                            
+
                             // 简单解析JSON
                             jsonResult = jsonResult.replace("{", "").replace("}", "").replace("\"", "");
                             String[] pairs = jsonResult.split(",");
@@ -335,14 +339,14 @@ public class VideoProcessUtil {
             // 等待命令执行完成
             boolean completed = process.waitFor(10, TimeUnit.MINUTES);
             if (!completed) {
-                log.error("YOLOv8模型检测超时");
+                log.error("YOLO模型检测超时");
                 process.destroy();
                 return results;
             }
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
-                log.error("YOLOv8模型检测失败，退出码: {}", exitCode);
+                log.error("YOLO模型检测失败，退出码: {}", exitCode);
                 log.error("输出日志: {}", output.toString());
                 return results;
             }
@@ -390,7 +394,7 @@ public class VideoProcessUtil {
             log.info("检测结果: {}", results);
             return results;
         } catch (Exception e) {
-            log.error("YOLOv8模型检测异常", e);
+            log.error("YOLO模型检测异常", e);
             return results;
         }
     }

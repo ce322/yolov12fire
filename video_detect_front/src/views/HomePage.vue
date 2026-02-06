@@ -69,7 +69,7 @@
       </el-menu-item>
       <div class="copyright" v-show="!isCollapse">
         <p class="system-name">基于 SpringBoot 与 YOLO 的视频流火灾烟雾检测系统</p>
-        <p class="developer">&copy; 开发：庄泓东</p>
+        <p class="developer">&copy; 开发：hrc</p>
       </div>
     </el-menu>
 
