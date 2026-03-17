@@ -104,6 +104,15 @@
           </template>
         </el-table-column>
 
+        <!-- 数据来源 -->
+        <el-table-column label="来源" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.videoId && row.videoId > 0 ? 'info' : 'warning'">
+              {{ row.videoId && row.videoId > 0 ? '视频检测' : '实时检测' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
         <!-- 是否起火 -->
         <el-table-column label="起火" width="60">
           <template #default="{ row }">
@@ -353,8 +362,11 @@ export default {
           // 处理图片显示和获取视频缩略图
           await this.processFireRecordsImages();
           
-          // 获取视频信息
+          // 获取视频信息（仅视频检测来源需要）
           for (const record of this.fireRecords) {
+            if (!record.videoId || record.videoId <= 0) {
+              continue;
+            }
             try {
               const videoResponse = await getFireVideo(record.id);
               if (videoResponse && videoResponse.code === 200 && videoResponse.data) {
@@ -426,8 +438,11 @@ export default {
           // 处理图片显示和获取视频缩略图
           await this.processFireRecordsImages();
           
-          // 获取视频信息
+          // 获取视频信息（仅视频检测来源需要）
           for (const record of this.fireRecords) {
+            if (!record.videoId || record.videoId <= 0) {
+              continue;
+            }
             try {
               const videoResponse = await getFireVideo(record.id);
               if (videoResponse && videoResponse.code === 200 && videoResponse.data) {
