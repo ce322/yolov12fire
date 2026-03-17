@@ -91,6 +91,8 @@
 </template>
 
 <script>
+import { sendRealtimeAlert } from '@/services/api';
+
 export default {
   data() {
     return {
@@ -112,7 +114,9 @@ export default {
       videoWidth: 640,
       videoHeight: 640,
       currentTime: '',
-      timeUpdateInterval: null
+      timeUpdateInterval: null,
+      lastRealtimeAlertAt: 0,
+      errorCount: 0
     };
   },
   methods: {
@@ -194,6 +198,7 @@ export default {
       this.detectionFps = 0;
       this.lastFpsUpdateTime = Date.now();
       this.framesSinceLastFpsUpdate = 0;
+      this.errorCount = 0;
       
       this.isDetecting = true;
       this.setupCanvas();
@@ -256,6 +261,7 @@ export default {
         // 处理检测结果
         if (this.isDetecting) { // 确保仍处于检测状态
           this.displayDetectionResults(data);
+          this.handleRealtimeAlert(data);
           this.detectionCount++;
           
           // 计算FPS
@@ -273,12 +279,46 @@ export default {
       .catch(error => {
         console.error('与后端通信错误:', error);
         this.errorMessage = `检测失败: ${error.message}`;
+        this.errorCount += 1;
         this.isLoading = false;
         
         // 如果连续出错，考虑停止检测
         if (this.errorCount > 5) {
           this.stopDetection();
         }
+      });
+    },
+
+    handleRealtimeAlert(data) {
+      if (!data || !Array.isArray(data.detections) || data.detections.length === 0) {
+        return;
+      }
+
+      const riskDetections = data.detections.filter((item) => {
+        const label = String(item.label || '').toLowerCase();
+        const confidence = Number(item.confidence || item.score || 0);
+        return (label.includes('fire') && confidence >= 0.30) || (label.includes('smoke') && confidence >= 0.25);
+      });
+
+      if (riskDetections.length === 0) {
+        return;
+      }
+
+      const now = Date.now();
+      if (now - this.lastRealtimeAlertAt < 60 * 1000) {
+        return;
+      }
+
+      this.lastRealtimeAlertAt = now;
+      sendRealtimeAlert({
+        placeId: null,
+        detections: riskDetections.map((item) => ({
+          label: item.label,
+          confidence: item.confidence || item.score || 0,
+          box: item.box
+        }))
+      }).catch((e) => {
+        console.error('实时告警调用失败:', e);
       });
     },
     displayDetectionResults(data) {
