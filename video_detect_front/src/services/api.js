@@ -881,3 +881,16 @@ export const detectVideoFrame = async (imageBase64) => {
     };
   }
 };
+
+// 实时检测触发告警（由监控页调用）
+export const sendRealtimeAlert = async (payload) => {
+  try {
+    token = getToken();
+    const response = await axios.post(`${API_URL}/alert/realtime`, payload, {
+      headers: { token }
+    });
+    return handleApiResponse(response, "sendRealtimeAlert", null);
+  } catch (error) {
+    return handleApiError(error, "sendRealtimeAlert", "发送实时告警失败");
+  }
+};

@@ -28,6 +28,17 @@ spring:
     multipart:
       max-file-size: 60MB
       max-request-size: 60MB
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your_alert_mail@qq.com
+    password: your_smtp_auth_code
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 mybatis-plus:
   type-aliases-package: com.zhuanghd.entity
   mapper-locations: classpath:mapper/*.xml
@@ -62,3 +73,10 @@ knife4j:
 #    secretKey: Hw0APLn-_hHcAymwIOFCppVphHVC_8k9EV_Z5aUL
 #    bucket: video-detect
 #    domain: sm5ve1now.hn-bkt.clouddn.com
+
+alert:
+  enabled: false
+  fire-threshold: 0.30
+  smoke-threshold: 0.25
+  mail-from: your_alert_mail@qq.com
+  cooldown-seconds: 60
