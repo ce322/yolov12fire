@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.protobuf.ServiceException;
 import com.zhuanghd.entity.FireDO;
+import com.zhuanghd.config.AlertProperties;
 import com.zhuanghd.entity.VideoDO;
 import com.zhuanghd.fire.request.FireQueryRequest;
 import com.zhuanghd.fire.request.FireRequest;
+import com.zhuanghd.service.AlertNotifyService;
 import com.zhuanghd.service.FireService;
 import com.zhuanghd.service.VideoService;
 import com.zhuanghd.mapper.FireMapper;
@@ -37,6 +39,12 @@ public class FireServiceImpl extends ServiceImpl<FireMapper, FireDO>
 
     @Autowired
     private VideoService videoService;
+
+    @Autowired
+    private AlertNotifyService alertNotifyService;
+
+    @Autowired
+    private AlertProperties alertProperties;
 
     @Override
     public boolean save(FireRequest param) {
@@ -209,8 +217,8 @@ public class FireServiceImpl extends ServiceImpl<FireMapper, FireDO>
             }
             
             // 根据概率设置标志//
-            int fireFlag = (fireProbability != null && fireProbability >= 0.30) ? 1 : 0;
-            int smokeFlag = (smokeProbability != null && smokeProbability >= 0.25) ? 1 : 0;
+            int fireFlag = (fireProbability != null && fireProbability >= alertProperties.getFireThreshold()) ? 1 : 0;
+            int smokeFlag = (smokeProbability != null && smokeProbability >= alertProperties.getSmokeThreshold()) ? 1 : 0;
             
             // 设置开始和结束时间
             Date startTime = videoDO.getProcessTime() != null 
@@ -240,6 +248,9 @@ public class FireServiceImpl extends ServiceImpl<FireMapper, FireDO>
             if (result) {
                 log.info("视频数据同步到火灾记录成功: videoId={}, fireId={}, 持续时间={}秒", 
                         videoDO.getId(), fireId, dTime);
+                if (fireFlag == 1 || smokeFlag == 1) {
+                    alertNotifyService.notifyFireAlert(fireDO);
+                }
             } else {
                 log.error("视频数据同步到火灾记录失败: videoId={}", videoDO.getId());
             }

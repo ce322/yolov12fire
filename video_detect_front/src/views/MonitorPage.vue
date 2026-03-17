@@ -9,6 +9,9 @@
           </div>
           
           <div class="control-panel">
+            <el-select v-model="selectedPlaceId" placeholder="请选择监测地点" style="width: 80%; margin: 10px 0">
+              <el-option v-for="item in placeOptions" :key="item.id" :label="item.name" :value="item.id" />
+            </el-select>
             <el-button type="primary" @click="startCamera" icon="el-icon-video-play">调用摄像头</el-button>
             <el-button type="danger" @click="stopCamera" icon="el-icon-video-pause">停用摄像头</el-button>
             <el-button type="success" @click="startDetection" icon="el-icon-search" :disabled="!stream || isDetecting">开始检测</el-button>
@@ -91,6 +94,8 @@
 </template>
 
 <script>
+import { getPlace, sendRealtimeAlert } from '@/services/api';
+
 export default {
   data() {
     return {
@@ -112,7 +117,11 @@ export default {
       videoWidth: 640,
       videoHeight: 640,
       currentTime: '',
-      timeUpdateInterval: null
+      timeUpdateInterval: null,
+      lastRealtimeAlertAt: 0,
+      errorCount: 0,
+      selectedPlaceId: null,
+      placeOptions: []
     };
   },
   methods: {
@@ -187,6 +196,10 @@ export default {
     },
     startDetection() {
       if (!this.stream) return;
+      if (!this.selectedPlaceId) {
+        this.errorMessage = "请先选择监测地点";
+        return;
+      }
       
       // 重置计数器和错误信息
       this.errorMessage = '';
@@ -194,6 +207,7 @@ export default {
       this.detectionFps = 0;
       this.lastFpsUpdateTime = Date.now();
       this.framesSinceLastFpsUpdate = 0;
+      this.errorCount = 0;
       
       this.isDetecting = true;
       this.setupCanvas();
@@ -256,6 +270,7 @@ export default {
         // 处理检测结果
         if (this.isDetecting) { // 确保仍处于检测状态
           this.displayDetectionResults(data);
+          this.handleRealtimeAlert(data);
           this.detectionCount++;
           
           // 计算FPS
@@ -273,12 +288,46 @@ export default {
       .catch(error => {
         console.error('与后端通信错误:', error);
         this.errorMessage = `检测失败: ${error.message}`;
+        this.errorCount += 1;
         this.isLoading = false;
         
         // 如果连续出错，考虑停止检测
         if (this.errorCount > 5) {
           this.stopDetection();
         }
+      });
+    },
+
+    handleRealtimeAlert(data) {
+      if (!data || !Array.isArray(data.detections) || data.detections.length === 0) {
+        return;
+      }
+
+      const riskDetections = data.detections.filter((item) => {
+        const label = String(item.label || '').toLowerCase();
+        const confidence = Number(item.confidence || item.score || 0);
+        return (label.includes('fire') && confidence >= 0.30) || (label.includes('smoke') && confidence >= 0.25);
+      });
+
+      if (riskDetections.length === 0) {
+        return;
+      }
+
+      const now = Date.now();
+      if (now - this.lastRealtimeAlertAt < 60 * 1000) {
+        return;
+      }
+
+      this.lastRealtimeAlertAt = now;
+      sendRealtimeAlert({
+        placeId: this.selectedPlaceId,
+        detections: riskDetections.map((item) => ({
+          label: item.label,
+          confidence: item.confidence || item.score || 0,
+          box: item.box
+        }))
+      }).catch((e) => {
+        console.error('实时告警调用失败:', e);
       });
     },
     displayDetectionResults(data) {
@@ -309,6 +358,19 @@ export default {
           this.ctx.font = 'bold 16px Arial';
           this.ctx.fillText(label, x + 5, y - 7);
         });
+      }
+    },
+    async loadPlaceOptions() {
+      try {
+        const response = await getPlace();
+        if (response && response.status && Array.isArray(response.data)) {
+          this.placeOptions = response.data;
+          if (!this.selectedPlaceId && this.placeOptions.length > 0) {
+            this.selectedPlaceId = this.placeOptions[0].id;
+          }
+        }
+      } catch (error) {
+        console.error('获取地点列表失败:', error);
       }
     },
     // 检查后端健康状态
@@ -345,6 +407,7 @@ export default {
   mounted() {
     // this.startCamera(); // 注释掉自动启动摄像头
     this.checkBackendHealth(); // 页面加载时检查后端状态
+    this.loadPlaceOptions();
     
     // 开始时间更新
     this.updateCurrentTime();
