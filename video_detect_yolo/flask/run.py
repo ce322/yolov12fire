@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import json
 from app import create_app
 
 def parse_args():
@@ -26,11 +27,27 @@ def main():
         os.makedirs(model_dir)
         print(f"已创建模型目录: {model_dir}")
     
-    # 检查是否存在模型文件
+    # 读取模型配置文件
+    config_path = os.path.join(os.path.dirname(__file__), 'app', 'model_config.json')
     model_path = os.path.join(model_dir, 'best12.pt')
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                model_config = json.load(f)
+            current_model = model_config.get('current_model')
+            model_path_value = model_config.get('models', {}).get(current_model)
+            if model_path_value:
+                if os.path.isabs(model_path_value):
+                    model_path = model_path_value
+                else:
+                    model_path = os.path.abspath(os.path.join(os.path.dirname(config_path), model_path_value))
+        except Exception as e:
+            print(f"警告: 读取模型配置失败，将使用默认模型路径。错误: {str(e)}")
+
+    # 检查是否存在模型文件
     if not os.path.exists(model_path):
         print(f"警告: 未找到模型文件: {model_path}")
-        print("请将模型文件放置于models目录中")
+        print("请在 app/model_config.json 中配置正确的模型路径")
     
     try:
         # 创建应用

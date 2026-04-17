@@ -12,6 +12,15 @@
             <el-select v-model="selectedPlaceId" placeholder="请选择监测地点" style="width: 80%; margin: 10px 0">
               <el-option v-for="item in placeOptions" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
+            <el-select
+              v-model="selectedModelName"
+              placeholder="请选择检测模型"
+              style="width: 80%; margin: 10px 0"
+              :disabled="isDetecting || isSwitchingModel"
+              @change="handleModelChange"
+            >
+              <el-option v-for="item in modelOptions" :key="item.name" :label="item.label" :value="item.name" />
+            </el-select>
             <el-button type="primary" @click="startCamera" icon="el-icon-video-play">调用摄像头</el-button>
             <el-button type="danger" @click="stopCamera" icon="el-icon-video-pause">停用摄像头</el-button>
             <el-button type="success" @click="startDetection" icon="el-icon-search" :disabled="!stream || isDetecting">开始检测</el-button>
@@ -94,7 +103,7 @@
 </template>
 
 <script>
-import { getPlace, sendRealtimeAlert } from '@/services/api';
+import { getPlace, sendRealtimeAlert, getDetectModelConfig, switchDetectModel } from '@/services/api';
 
 export default {
   data() {
@@ -121,7 +130,10 @@ export default {
       lastRealtimeAlertAt: 0,
       errorCount: 0,
       selectedPlaceId: null,
-      placeOptions: []
+      placeOptions: [],
+      selectedModelName: '',
+      modelOptions: [],
+      isSwitchingModel: false
     };
   },
   methods: {
@@ -373,6 +385,44 @@ export default {
         console.error('获取地点列表失败:', error);
       }
     },
+    async loadModelOptions() {
+      try {
+        const response = await getDetectModelConfig();
+        if (!response || !response.models) {
+          this.errorMessage = '获取模型配置失败';
+          return;
+        }
+        this.modelOptions = Object.entries(response.models).map(([name, path]) => ({
+          name,
+          label: `${name} (${path})`
+        }));
+        this.selectedModelName = response.current_model || '';
+      } catch (error) {
+        console.error('加载模型配置失败:', error);
+      }
+    },
+    async handleModelChange(modelName) {
+      if (!modelName) return;
+      if (this.isDetecting) {
+        this.errorMessage = '请先停止检测再切换模型';
+        return;
+      }
+      this.isSwitchingModel = true;
+      this.errorMessage = '';
+      try {
+        const response = await switchDetectModel(modelName);
+        if (!response || response.success === false) {
+          this.errorMessage = response && response.error ? response.error : '模型切换失败';
+          return;
+        }
+        this.$message.success(`已切换到模型: ${response.current_model}`);
+      } catch (error) {
+        console.error('模型切换失败:', error);
+        this.errorMessage = '模型切换失败';
+      } finally {
+        this.isSwitchingModel = false;
+      }
+    },
     // 检查后端健康状态
     checkBackendHealth() {
       fetch(this.apiHealthUrl)
@@ -408,6 +458,7 @@ export default {
     // this.startCamera(); // 注释掉自动启动摄像头
     this.checkBackendHealth(); // 页面加载时检查后端状态
     this.loadPlaceOptions();
+    this.loadModelOptions();
     
     // 开始时间更新
     this.updateCurrentTime();
