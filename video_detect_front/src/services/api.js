@@ -882,6 +882,43 @@ export const detectVideoFrame = async (imageBase64) => {
   }
 };
 
+// 获取检测模型配置
+export const getDetectModelConfig = async () => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/model/config`, {
+      timeout: 5000
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取检测模型配置失败:", error);
+    return {
+      success: false,
+      error: error.message || '获取检测模型配置失败'
+    };
+  }
+};
+
+// 切换检测模型（后端会更新配置文件中的模型路径）
+export const switchDetectModel = async (modelName) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/model/switch`, {
+      model_name: modelName
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    return response.data;
+  } catch (error) {
+    console.error("切换检测模型失败:", error);
+    return {
+      success: false,
+      error: error.message || '切换检测模型失败'
+    };
+  }
+};
+
 // 实时检测触发告警（由监控页调用）
 export const sendRealtimeAlert = async (payload) => {
   try {

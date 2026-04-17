@@ -1,0 +1,6 @@
+{
+  "current_model": "yolov12",
+  "models": {
+    "yolov12": "../models/best12.pt"
+  }
+}
