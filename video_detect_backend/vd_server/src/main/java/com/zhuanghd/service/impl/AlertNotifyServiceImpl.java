@@ -3,8 +3,10 @@ package com.zhuanghd.service.impl;
 import com.zhuanghd.alert.request.RealtimeDetectionItem;
 import com.zhuanghd.config.AlertProperties;
 import com.zhuanghd.entity.FireDO;
+import com.zhuanghd.entity.PlaceDO;
 import com.zhuanghd.entity.UserDO;
 import com.zhuanghd.mapper.FireMapper;
+import com.zhuanghd.mapper.PlaceMapper;
 import com.zhuanghd.mapper.UserMapper;
 import com.zhuanghd.utils.SnowflakeIdWorker;
 import com.zhuanghd.service.AlertNotifyService;
@@ -31,6 +33,7 @@ public class AlertNotifyServiceImpl implements AlertNotifyService {
     private final JavaMailSender mailSender;
     private final UserMapper userMapper;
     private final FireMapper fireMapper;
+    private final PlaceMapper placeMapper;
     private final AlertProperties alertProperties;
 
     @Value("${spring.mail.username:}")
@@ -102,7 +105,7 @@ public class AlertNotifyServiceImpl implements AlertNotifyService {
         }
 
         String subject = "[实时检测告警] 监控画面发现火灾/烟雾风险";
-        String content = buildRealtimeMailContent(placeId, riskDetections);
+        String content = buildRealtimeMailContent(resolvePlaceName(placeId), riskDetections);
         sendMail(user.getEmail(), subject, content);
         userLastAlertTimeMap.put(userId, now);
         log.info("实时告警邮件发送成功: userId={}, placeId={}, hitCount={}", userId, placeId, riskDetections.size());
@@ -171,12 +174,12 @@ public class AlertNotifyServiceImpl implements AlertNotifyService {
         mailSender.send(message);
     }
 
-    private String buildRealtimeMailContent(Long placeId, List<RealtimeDetectionItem> detections) {
+    private String buildRealtimeMailContent(String placeName, List<RealtimeDetectionItem> detections) {
         String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         StringBuilder sb = new StringBuilder();
         sb.append("实时检测发现风险目标，请及时处理。\n\n")
                 .append("检测时间: ").append(time).append("\n")
-                .append("地点ID: ").append(placeId == null ? "-" : placeId).append("\n")
+                .append("地点名称: ").append(placeName).append("\n")
                 .append("命中数量: ").append(detections.size()).append("\n\n")
                 .append("命中详情:\n");
 
@@ -196,10 +199,11 @@ public class AlertNotifyServiceImpl implements AlertNotifyService {
     private String buildMailContent(FireDO fireRecord) {
         String startTime = formatDate(fireRecord.getStartTime());
         String endTime = formatDate(fireRecord.getEndTime());
+        String placeName = resolvePlaceName(fireRecord.getPlaceId());
         return "检测系统发现疑似火灾/烟雾，请尽快核查。\n\n"
                 + "检测结果如下：\n"
                 + "- 记录ID: " + valueOf(fireRecord.getId()) + "\n"
-                + "- 地点ID: " + valueOf(fireRecord.getPlaceId()) + "\n"
+                + "- 地点名称: " + placeName + "\n"
                 + "- 视频ID: " + valueOf(fireRecord.getVideoId()) + "\n"
                 + "- 火灾概率: " + percent(fireRecord.getProb()) + "\n"
                 + "- 烟雾概率: " + percent(fireRecord.getSmokeProb()) + "\n"
@@ -208,6 +212,17 @@ public class AlertNotifyServiceImpl implements AlertNotifyService {
                 + "- 开始时间: " + startTime + "\n"
                 + "- 结束时间: " + endTime + "\n\n"
                 + "请登录系统查看详情。";
+    }
+
+    private String resolvePlaceName(Long placeId) {
+        if (placeId == null) {
+            return "-";
+        }
+        PlaceDO place = placeMapper.selectById(placeId);
+        if (place == null || !StringUtils.hasText(place.getName())) {
+            return "未知地点";
+        }
+        return place.getName();
     }
 
     private String percent(Double value) {
