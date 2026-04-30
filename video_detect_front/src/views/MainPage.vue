@@ -1,56 +1,70 @@
 <template>
   <div class="monitor-container">
     <el-card class="monitor-card">
-      <!-- 轮播图 -->
       <el-carousel height="300px" trigger="click">
         <el-carousel-item v-for="(item, index) in carouselItems" :key="index">
           <img
             :src="item.src"
-            alt="轮播图图片"
+            alt="消防宣传图片"
             style="width: 100%; height: 100%; object-fit: cover"
           />
         </el-carousel-item>
       </el-carousel>
 
-      <h2>🔍 系统简介</h2>
+      <h2>🏠 首页导览</h2>
       <p>
-        &emsp;&emsp;本系统是一套基于Spring Boot与YOLO的智能视频流处理与目标检测平台，专注于火灾与烟雾的自动识别与预警。通过引入先进的AI视觉识别技术与高效的系统架构设计，旨在提升传统火灾检测系统在实时性、准确率与稳定性方面的表现。
+        &emsp;&emsp;欢迎使用消防安全管理平台。首页聚焦“日常消防知识 + 实操指引 +
+        值班提醒”，帮助值班人员快速完成巡检、处置与上报，降低火灾风险。
       </p>
 
-      <!-- 项目功能 -->
       <div class="section">
-        <h2>🧠 核心功能亮点</h2>
+        <h2>🔥 消防基础知识（建议每日复习）</h2>
         <ul>
           <li>
-            <strong>🎥 视频流数据处理</strong>：支持视频流上传与实时处理，系统通过异步处理机制与分布式ID生成优化性能，确保在高并发场景下依然保持流畅、快速的响应能力。
+            <strong>火灾处置口诀</strong>：先报警、再疏散、后扑救；优先保障人员安全，切勿盲目进入浓烟区域。
           </li>
           <li>
-            <strong>📊 数据可视化界面</strong>：前端采用Vue 3、Element Plus 与 ECharts，提供实时监控视图、统计图表与历史数据分析界面，让数据更直观、操作更便捷。
-          </li>
-        </ul>
-      </div>
-
-      <!-- 项目意义 -->
-      <div class="section">
-        <h2>🏗️ 系统架构优势</h2>
-        <ul>
-          <li>
-            <strong>前后端分离设计</strong>：前端 Vue.js 与后端 Spring Boot 解耦开发，提升系统的可维护性与可扩展性
+            <strong>火灾类型识别</strong>：电气火灾先断电；油类火灾禁止用水；设备类初起火灾优先选用干粉或二氧化碳灭火器。
           </li>
           <li>
-            <strong>高性能后端支撑</strong>：整合 MyBatis-Plus、Redis 缓存、JWT 鉴权，实现数据安全与请求高效响应
-          </li>
-          <li>
-            <strong>稳定高并发处理</strong>：基于 Spring 异步机制和分布式设计，应对大规模数据访问与检测请求
+            <strong>逃生原则</strong>：弯腰低姿、湿巾捂口鼻、不乘电梯，沿安全出口有序撤离。
           </li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>📌 应用前景与价值</h2>
-        <p>
-          &emsp;&emsp;本系统不仅适用于智能安防与火灾预警领域，还可扩展应用于其他目标检测场景，具备良好的泛化能力与技术可移植性，为AI视觉检测的实际落地提供了完整解决方案。
-        </p>
+        <h2>🧯 灭火器使用 Tips</h2>
+        <ul>
+          <li>
+            <strong>四步法</strong>：提（提起灭火器）→ 拔（拔掉保险销）→ 握（握住喷管）→ 压（压下压把扫射火焰根部）。
+          </li>
+          <li>
+            <strong>安全距离</strong>：建议在 2~3 米外对准火焰根部左右扫射，避免距离过近被火舌反扑。
+          </li>
+          <li>
+            <strong>检查周期</strong>：每月检查压力表、瓶体、喷管和有效期，发现异常立即更换并登记。
+          </li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>📋 值班人员操作手册（简版）</h2>
+        <ol>
+          <li>上岗前确认监控画面、网络、告警提示音状态正常。</li>
+          <li>发现疑似火情时，先在“实时监控”进行二次确认并截图留档。</li>
+          <li>立即电话通知现场负责人，同步组织周边人员撤离。</li>
+          <li>在“火灾记录”页面完成事件上报，填写时间、地点、处置结果。</li>
+          <li>处置结束后在“检查记录”补全复盘信息，形成闭环。</li>
+        </ol>
+      </div>
+
+      <div class="section warning-section">
+        <h2>⚠️ 今日值守提醒</h2>
+        <ul>
+          <li>重点关注配电间、仓储区、厨房等高风险区域。</li>
+          <li>严禁堵塞消防通道，确保疏散指示和应急照明可用。</li>
+          <li>交接班必须口头+书面双确认，避免漏检漏报。</li>
+        </ul>
       </div>
     </el-card>
   </div>
@@ -83,13 +97,8 @@ export default {
   width: 95%;
   height: 90%;
   padding: 20px;
-  text-align: left; /* 内容左对齐 */
-  overflow-y: auto; /* 如果内容过多，允许滚动 */
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
+  text-align: left;
+  overflow-y: auto;
 }
 
 h2 {
@@ -97,18 +106,20 @@ h2 {
   margin-bottom: 10px;
 }
 
-ul {
+ul,
+ol {
   padding-left: 20px;
 }
 
 li {
   margin-bottom: 10px;
+  line-height: 1.6;
 }
 
-footer {
-  margin-top: 40px;
-  text-align: center;
-  font-size: 14px;
-  color: #666;
+.warning-section {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 8px;
+  padding: 12px 16px;
 }
 </style>
