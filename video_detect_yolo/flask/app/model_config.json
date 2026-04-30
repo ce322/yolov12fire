@@ -1,0 +1,7 @@
+{
+  "current_model": "yolo_v12",
+  "models": {
+    "YOLOv8": "../models/v8best12.pt",
+    "YOLOv12": "../models/train4v12best.pt"
+  }
+}

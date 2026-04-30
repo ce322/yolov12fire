@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhuanghd.mapper.CheckMapper">
+
+    <resultMap id="BaseResultMap" type="com.zhuanghd.entity.CheckDO">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="duty" column="duty" />
+            <result property="dutyTel" column="duty_tel" />
+            <result property="place" column="place" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+            <result property="time" column="time" />
+            <result property="dTime" column="d_time" />
+            <result property="situation" column="situation" />
+            <result property="score" column="score" />
+            <result property="deleteFlag" column="delete_flag" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,duty,duty_tel,place,create_time,update_time
+        time,d_time,situation,score,delete_flag
+    </sql>
+</mapper>

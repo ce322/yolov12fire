@@ -1,0 +1,878 @@
+<template>
+  <div class="charts-container">
+    <el-card class="filter-card">
+      <!-- 时间范围筛选 -->
+      <div class="filter-content">
+        <el-form :inline="true">
+          <el-form-item label="时间范围">
+            <el-date-picker v-model="timeRange" type="daterange" range-separator="至" start-placeholder="开始日期"
+              end-placeholder="结束日期" value-format="YYYY-MM-DD" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="fetchAllData">查询</el-button>
+            <el-button @click="resetFilter">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div class="charts-content" v-loading="loading">
+        <div class="chart-row">
+          <!-- 时间与火灾次数（月）的饼图 -->
+          <el-card class="chart-card">
+            <div ref="fireByMonthChart" class="chart-container"></div>
+          </el-card>
+
+          <!-- 地点与设备个数的柱状图 -->
+          <el-card class="chart-card">
+            <div ref="placeDeviceChart" class="chart-container"></div>
+          </el-card>
+        </div>
+
+        <div class="chart-row">
+          <!-- 时间顺序为X轴，烟雾概率和火灾概率为Y轴的折线图 -->
+          <el-card class="chart-card">
+            <div ref="probabilityTrendChart" class="chart-container"></div>
+          </el-card>
+
+          <!-- 地点和检查次数的柱状图 -->
+          <el-card class="chart-card">
+            <div ref="placeCheckChart" class="chart-container"></div>
+          </el-card>
+        </div>
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script>
+import { getDeviceStats, getPlaceDeviceStats, checkList, fireList, getPlace } from '@/services/api';
+import * as echarts from 'echarts';
+
+export default {
+  name: 'ChartsPage',
+  data() {
+    return {
+      loading: false,
+      timeRange: [],
+      charts: {
+        fireByMonth: null,
+        placeDevice: null,
+        probabilityTrend: null,
+        placeCheck: null
+      },
+      data: {
+        fireRecords: [], // 火灾记录数据
+        device: [],      // 设备数据
+        check: [],       // 检查记录数据
+        placeDevice: [], // 地点设备数据
+        placeCheck: []   // 地点检查次数数据
+      },
+      placeMap: {},      // 地点ID到名称的映射
+      // 颜色配置，用于柱状图
+      colorList: [
+        ['#f56c6c', '#fc9999'], // 红色系
+        ['#e6a23c', '#f5cc98'], // 橙色系
+        ['#409eff', '#85bfff'], // 蓝色系
+        ['#67c23a', '#a3e08c'], // 绿色系
+        ['#909399', '#c8c9cc'], // 灰色系
+        ['#9d88f7', '#bdacfc'], // 紫色系
+        ['#19d4ae', '#7dfbda'], // 青绿色系
+        ['#ff9976', '#ffc5b3'], // 珊瑚色系
+        ['#fddd60', '#ffe992'], // 黄色系
+        ['#ff817f', '#ffb0af']  // 粉色系
+      ]
+    };
+  },
+  computed: {
+    // 计算时间筛选参数
+    timeFilterParams() {
+      if (!this.timeRange || this.timeRange.length !== 2) return {};
+      return {
+        startTime: this.timeRange[0],
+        endTime: this.timeRange[1]
+      };
+    }
+  },
+  mounted() {
+    this.initCharts();
+    this.fetchAllData();
+    this.$message.info('正在加载全部数据统计，您可以使用时间筛选查看特定时间段数据');
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
+    Object.values(this.charts).forEach(chart => chart && chart.dispose());
+  },
+  methods: {
+    // 初始化所有图表
+    initCharts() {
+      const chartRefs = {
+        fireByMonth: this.$refs.fireByMonthChart,
+        placeDevice: this.$refs.placeDeviceChart,
+        probabilityTrend: this.$refs.probabilityTrendChart,
+        placeCheck: this.$refs.placeCheckChart
+      };
+
+      Object.entries(chartRefs).forEach(([key, el]) => {
+        this.charts[key] = echarts.init(el);
+      });
+    },
+
+    // 处理窗口大小变化，自适应图表大小
+    handleResize() {
+      Object.values(this.charts).forEach(chart => chart && chart.resize());
+    },
+
+    // 获取所有数据
+    async fetchAllData() {
+      this.loading = true;
+
+      try {
+        // 显示时间筛选信息
+        if (this.timeRange && this.timeRange.length === 2) {
+          this.$message.info(`正在加载 ${this.timeRange[0]} 至 ${this.timeRange[1]} 的统计数据`);
+        }
+
+        // 首先获取地点信息，确保地点映射最先被加载
+        await this.fetchPlaceInfo();
+
+        // 并行获取所有数据
+        await Promise.all([
+          this.fetchFireRecords(),
+          this.fetchDeviceData(),
+          this.fetchCheckList(),
+        ]);
+
+        // 生成地点检查次数统计
+        this.data.placeCheck = this.generatePlaceCheckStats();
+
+        // 渲染所有图表
+        this.renderAllCharts();
+
+      } catch (error) {
+        console.error('获取统计数据失败:', error);
+        this.$message.error('获取统计数据失败，请检查网络连接');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // 获取设备数据
+    async fetchDeviceData() {
+      try {
+        const [deviceResponse, placeDeviceResponse] = await Promise.all([
+          getDeviceStats(),
+          getPlaceDeviceStats()
+        ]);
+
+        if (deviceResponse?.code === 200) {
+          this.data.device = deviceResponse.data || [];
+        }
+
+        if (placeDeviceResponse?.code === 200) {
+          this.data.placeDevice = placeDeviceResponse.data || [];
+        }
+      } catch (error) {
+        console.error('获取设备统计数据异常:', error);
+        this.data.device = [];
+        this.data.placeDevice = [];
+      }
+    },
+
+    // 获取检查列表
+    async fetchCheckList() {
+      try {
+        const params = {
+          page: 1,
+          size: 200,
+          ...this.timeFilterParams
+        };
+
+        const response = await checkList(params.page, params.size, params);
+        if (response?.code === 200) {
+          this.data.check = response.data?.records || [];
+        } else {
+          this.data.check = [];
+          console.error('获取检查列表失败:', response?.msg || '未知错误');
+        }
+      } catch (error) {
+        console.error('获取检查列表数据异常:', error);
+        this.data.check = [];
+      }
+    },
+
+    // 获取火灾记录列表
+    async fetchFireRecords() {
+      try {
+        const params = {
+          page: 1,
+          size: 1000,
+          fireFlag: 1,
+          ...this.timeFilterParams
+        };
+
+        const response = await fireList(params.page, params.size, params);
+        if (response?.code === 200) {
+          this.data.fireRecords = response.data?.records || [];
+        } else {
+          this.data.fireRecords = [];
+          console.error('获取火灾记录列表失败:', response?.msg || '未知错误');
+        }
+      } catch (error) {
+        console.error('获取火灾记录列表异常:', error);
+        this.data.fireRecords = [];
+      }
+    },
+
+    // 生成地点检查次数统计
+    generatePlaceCheckStats() {
+      if (!this.data.check || this.data.check.length === 0) {
+        return [];
+      }
+
+      // 构建地点ID到名称的映射
+      const placeIdToNameMap = { ...this.placeMap };
+
+      // 统计每个地点的检查次数
+      const placeCheckStats = [];
+      const placeCheckCountMap = {};
+
+      this.data.check.forEach(record => {
+        // 获取地点ID和名称
+        const placeId = record.placeId || record.place_id;
+        let placeName;
+
+        // 优先使用record中已有的地点名称
+        if (record.place || record.placeName || record.location) {
+          placeName = record.place || record.placeName || record.location;
+        }
+        // 如果没有名称但有ID，从映射中获取
+        else if (placeId && placeIdToNameMap[placeId]) {
+          placeName = placeIdToNameMap[placeId];
+        }
+        // 如果仍然没有名称，使用ID作为名称
+        else if (placeId) {
+          placeName = `地点${placeId}`;
+        }
+        // 最后的后备选项
+        else {
+          placeName = '未知地点';
+        }
+
+        // 使用地点ID作为键，确保相同地点被正确统计
+        const key = placeId || placeName;
+
+        if (!placeCheckCountMap[key]) {
+          placeCheckCountMap[key] = {
+            placeId: placeId,
+            name: placeName,
+            count: 0
+          };
+        }
+
+        placeCheckCountMap[key].count++;
+      });
+
+      // 转换为数组并排序
+      for (const key in placeCheckCountMap) {
+        placeCheckStats.push({
+          placeId: placeCheckCountMap[key].placeId,
+          name: placeCheckCountMap[key].name,
+          value: placeCheckCountMap[key].count
+        });
+      }
+
+      return placeCheckStats.sort((a, b) => b.value - a.value);
+    },
+
+    // 渲染所有图表
+    renderAllCharts() {
+      this.renderFireByMonthChart();
+      this.renderProbabilityTrendChart();
+      this.renderPlaceDeviceChart();
+      this.renderPlaceCheckChart();
+    },
+
+    // 渲染火灾月份饼图
+    renderFireByMonthChart() {
+      if (!this.data.fireRecords || this.data.fireRecords.length === 0) {
+        this.setEmptyChart(this.charts.fireByMonth);
+        return;
+      }
+
+      // 按月份分组统计火灾次数
+      const monthCountMap = {};
+
+      this.data.fireRecords.forEach(record => {
+        // 获取日期的年月部分 YYYY-MM
+        const date = record.startTime || record.createTime;
+        if (date) {
+          const yearMonth = date.substring(0, 7);
+          monthCountMap[yearMonth] = (monthCountMap[yearMonth] || 0) + 1;
+        }
+      });
+
+      // 转换为饼图所需的数据格式
+      const monthData = Object.keys(monthCountMap).map(month => {
+        const [year, monthNum] = month.split('-');
+        return {
+          name: `${year}.${monthNum}`,
+          value: monthCountMap[month]
+        };
+      });
+
+      // 按月份排序
+      monthData.sort((a, b) => {
+        const monthA = a.name.replace('.', '-');
+        const monthB = b.name.replace('.', '-');
+        return monthA.localeCompare(monthB);
+      });
+
+      if (monthData.length === 0) {
+        this.setEmptyChart(this.charts.fireByMonth);
+        return;
+      }
+
+      this.charts.fireByMonth.setOption({
+        title: {
+          text: '火灾次数按月份统计',
+          left: 'center',
+          textStyle: { fontSize: 16 }
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b}: {c}次 ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: 10,
+          top: 'center',
+          data: monthData.map(item => item.name),
+          textStyle: { color: '#333' }
+        },
+        series: [{
+          name: '火灾次数',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: { show: false, position: 'center' },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 15,
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: { show: false },
+          data: monthData
+        }]
+      });
+    },
+
+    // 渲染概率趋势折线图
+    renderProbabilityTrendChart() {
+      if (!this.data.fireRecords || this.data.fireRecords.length === 0) {
+        this.setEmptyChart(this.charts.probabilityTrend);
+        return;
+      }
+
+      // 提取最多10条火灾记录，按时间排序
+      const sortedRecords = [...this.data.fireRecords]
+        .sort((a, b) => new Date(a.startTime || a.createTime) - new Date(b.startTime || b.createTime))
+        .slice(0, 10);
+
+      // 准备数据
+      const labels = [];
+      const fireProbData = [];
+      const smokeProbData = [];
+
+      sortedRecords.forEach((record, index) => {
+        // 使用日期作为标签
+        let date = '记录' + (index + 1);
+
+        if (record.startTime) {
+          try {
+            const dateObj = new Date(record.startTime);
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            date = `${year}-${month}-${day}`;
+          } catch (e) {
+            date = record.startTime.substring(0, 10);
+          }
+        }
+
+        labels.push(date);
+
+        // 提取火灾和烟雾概率数据 (0-1转换为0-100的百分比)
+        const fireProb = parseFloat((record.prob || 0) * 100).toFixed(1);
+        const smokeProb = parseFloat((record.smokeProb || 0) * 100).toFixed(1);
+
+        fireProbData.push(fireProb);
+        smokeProbData.push(smokeProb);
+      });
+
+      this.charts.probabilityTrend.setOption({
+        title: {
+          text: '火灾/烟雾概率趋势',
+          left: 'center',
+          textStyle: { fontSize: 16 }
+        },
+        tooltip: {
+          trigger: 'axis',
+          formatter: function (params) {
+            let result = params[0].name + '<br/>';
+            params.forEach(param => {
+              result += param.marker + ' ' + param.seriesName + ': ' + param.value + '%<br/>';
+            });
+            return result;
+          }
+        },
+        legend: {
+          data: ['火灾概率', '烟雾概率'],
+          top: 'bottom',
+          textStyle: { color: '#333' }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '60px',
+          top: '60px',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: labels,
+          axisLabel: this.getAxisLabelConfig(45, 11, 12)
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: {
+            formatter: '{value}%',
+            color: '#333'
+          },
+          name: '概率(%)',
+          nameTextStyle: {
+            color: '#666',
+            padding: [0, 0, 0, 40]
+          },
+          max: 100
+        },
+        series: [
+          this.getLineSeries('火灾概率', fireProbData, '#f56c6c'),
+          this.getLineSeries('烟雾概率', smokeProbData, '#409EFF')
+        ]
+      });
+    },
+
+    // 获取折线图系列配置
+    getLineSeries(name, data, color) {
+      return {
+        name: name,
+        type: 'line',
+        data: data,
+        smooth: true,
+        lineStyle: { width: 3, color: color },
+        itemStyle: { color: color, borderWidth: 2 },
+        symbol: 'circle',
+        symbolSize: 8,
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: `${color}80` }, // 添加50%透明度
+            { offset: 1, color: `${color}10` }  // 添加10%透明度
+          ])
+        }
+      };
+    },
+
+    // 渲染地点设备数量柱状图
+    renderPlaceDeviceChart() {
+      if (!this.data.placeDevice || this.data.placeDevice.length === 0) {
+        this.setEmptyChart(this.charts.placeDevice);
+        return;
+      }
+
+      // 将地点ID转换为地点名称
+      const formattedData = this.data.placeDevice.map(item => {
+        const placeName = item.placeId ? this.placeMap[item.placeId] || `地点${item.placeId}` : item.name;
+        return { name: placeName, value: item.value };
+      });
+
+      const places = formattedData.map(item => item.name);
+      const deviceCounts = formattedData.map(item => item.value);
+
+      this.charts.placeDevice.setOption({
+        title: {
+          text: '地点与设备数量统计',
+          left: 'center',
+          textStyle: { fontSize: 16 }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: '{b}: {c}台设备'
+        },
+        grid: this.getChartGridConfig(),
+        xAxis: {
+          type: 'category',
+          data: places,
+          axisLabel: this.getAxisLabelConfig(30),
+          axisLine: this.getAxisLineConfig(),
+          axisTick: this.getAxisTickConfig()
+        },
+        yAxis: {
+          type: 'value',
+          name: '设备数量',
+          nameTextStyle: this.getNameTextStyleConfig(),
+          splitLine: this.getSplitLineConfig()
+        },
+        series: [{
+          name: '设备数量',
+          type: 'bar',
+          barWidth: '60%',
+          data: deviceCounts,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#95EB7D' },
+              { offset: 1, color: '#67C23A' }
+            ]),
+            borderRadius: [4, 4, 0, 0]
+          },
+          label: this.getBarLabelConfig('台')
+        }]
+      });
+    },
+
+    // 渲染地点检查次数柱状图
+    renderPlaceCheckChart() {
+      if (!this.data.placeCheck || this.data.placeCheck.length === 0) {
+        this.setEmptyChart(this.charts.placeCheck);
+        return;
+      }
+
+      // 限制最多显示10个地点，避免图表过于拥挤
+
+      const formattedData = this.data.placeCheck.map(item => {
+      //   const placeName = item.placeId ? this.placeMap[item.placeId] || `地点${item.placeId}` : item.name;
+      //   return { name: placeName, value: item.value };
+      // });
+      const formattedData = this.data.placeDevice.map(item => {
+        const placeName = item.placeId ? this.placeMap[item.placeId] || `地点${item.placeId}` : item.name;
+        return { name: placeName, value: item.value };
+      });
+
+      const places = formattedData.map(item => item.name);
+      const checkCounts = formattedData.map(item => item.value);
+
+      // 每个柱子使用不同的颜色渐变
+      const seriesData = checkCounts.map((value, index) => ({
+        value,
+        itemStyle: {
+          color: this.getGradientColor(index),
+          borderRadius: [4, 4, 0, 0]
+        }
+      }));
+
+      this.charts.placeCheck.setOption({
+        title: {
+          text: '地点与检查次数统计',
+          left: 'center',
+          textStyle: { fontSize: 16 }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+            shadowStyle: { opacity: 0.3 }
+          },
+          formatter: params => `${params[0].name}<br/>检查次数: ${params[0].value}次`
+        },
+        grid: this.getChartGridConfig(),
+        xAxis: {
+          type: 'category',
+          data: places,
+          axisLabel: this.getAxisLabelConfig(30),
+          axisTick: this.getAxisTickConfig(),
+          axisLine: this.getAxisLineConfig(),
+          boundaryGap: true
+        },
+        yAxis: {
+          type: 'value',
+          name: '检查次数',
+          nameTextStyle: this.getNameTextStyleConfig(),
+          splitLine: this.getSplitLineConfig()
+        },
+        series: [{
+          name: '检查次数',
+          type: 'bar',
+          barWidth: '60%',
+          data: seriesData,
+          label: this.getBarLabelConfig('次'),
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            },
+            label: { fontWeight: 'bold' }
+          }
+        }]
+      });
+    },
+
+    // 获取渐变颜色
+    getGradientColor(index) {
+      const colors = this.colorList[index % this.colorList.length];
+      return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: colors[0] },
+        { offset: 1, color: colors[1] }
+      ]);
+    },
+
+    // 获取图表网格配置
+    getChartGridConfig() {
+      return {
+        left: '3%',
+        right: '4%',
+        bottom: '15%',
+        top: '60px',
+        containLabel: true
+      };
+    },
+
+    // 获取坐标轴标签配置
+    getAxisLabelConfig(rotate = 30, fontSize = 12, margin = 14) {
+      return {
+        interval: 0,
+        rotate: rotate,
+        color: '#333',
+        fontSize: fontSize,
+        fontWeight: 'normal',
+        formatter: function (value) {
+          if (value.length > 10) {
+            return value.substring(0, 10) + '...';
+          }
+          return value;
+        },
+        margin: margin,
+        align: 'right'
+      };
+    },
+
+    // 获取坐标轴线配置
+    getAxisLineConfig() {
+      return {
+        lineStyle: {
+          color: '#ccc',
+          width: 2
+        }
+      };
+    },
+
+    // 获取坐标轴刻度配置
+    getAxisTickConfig() {
+      return {
+        alignWithLabel: true,
+        length: 5,
+        lineStyle: { color: '#ccc' }
+      };
+    },
+
+    // 获取名称文本样式配置
+    getNameTextStyleConfig() {
+      return {
+        color: '#666',
+        fontSize: 12,
+        padding: [0, 0, 0, 30]
+      };
+    },
+
+    // 获取分割线配置
+    getSplitLineConfig() {
+      return {
+        lineStyle: {
+          type: 'dashed',
+          color: '#eee'
+        }
+      };
+    },
+
+    // 获取柱状图标签配置
+    getBarLabelConfig(unit) {
+      return {
+        show: true,
+        position: 'top',
+        formatter: `{c}${unit}`,
+        fontSize: 12,
+        color: '#606266'
+      };
+    },
+
+    // 设置空图表
+    setEmptyChart(chart) {
+      chart.setOption({
+        title: {
+          text: '暂无数据',
+          left: 'center',
+          top: 'center',
+          textStyle: {
+            color: '#999',
+            fontSize: 16
+          }
+        }
+      });
+    },
+
+    // 重置筛选条件
+    resetFilter() {
+      this.timeRange = [];
+      this.$message.success('筛选条件已重置，显示全部数据');
+      this.fetchAllData();
+    },
+
+    // 获取地点信息
+    async fetchPlaceInfo() {
+      try {
+        const response = await getPlace();
+        if (response && response.code === 200) {
+          // 创建ID到名称的映射
+          this.placeMap = response.data.reduce((map, item) => {
+            map[item.id] = item.name;
+            return map;
+          }, {});
+        } else {
+          console.error('获取地点列表失败:', response?.msg || '未知错误');
+          this.placeMap = {};
+        }
+      } catch (error) {
+        console.error('获取地点列表请求失败:', error);
+        this.placeMap = {};
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.charts-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+}
+
+.filter-card {
+  width: 95%;
+  height: 90%;
+  padding: 20px;
+  overflow: auto;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.filter-content {
+  margin-bottom: 20px;
+  padding: 18px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #409EFF;
+}
+
+.filter-content .el-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-content .el-form-item {
+  margin-right: 20px;
+  margin-bottom: 0;
+}
+
+.filter-content .el-button {
+  padding: 10px 20px;
+  margin-left: 10px;
+}
+
+.charts-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 250px);
+}
+
+.chart-row {
+  display: flex;
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  flex: 1;
+  margin: 0 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 1200px) {
+  .charts-container {
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .filter-card {
+    height: auto;
+  }
+
+  .charts-content {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-row {
+    flex-direction: column;
+  }
+
+  .chart-card {
+    margin: 10px 0;
+    min-height: 350px;
+  }
+
+  .filter-content .el-form {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-content .el-form-item {
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .chart-container {
+    min-height: 250px;
+  }
+}
+</style>
