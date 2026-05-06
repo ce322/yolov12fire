@@ -47,6 +47,7 @@
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
+          <el-button type="success" @click="exportExcel">导出Excel</el-button>
         </el-form-item>
       </el-form>
 
@@ -301,6 +302,7 @@ import {
   uploadFile,
 } from "@/services/api";
 import dayjs from "dayjs";
+import { exportToExcelLikeCsv } from "@/utils/exportExcel";
 import { Picture } from "@element-plus/icons-vue";
 
 export default {
@@ -357,6 +359,39 @@ export default {
     this.fetchLocations();
   },
   methods: {
+    exportExcel() {
+      const rows = (this.fireRecords || this.placeList || this.deviceList || this.checkList || []).map((item) => item);
+      const headers = this.getExportHeaders();
+      const mappedRows = rows.map((item) => {
+        const r = {};
+        headers.forEach((h) => { r[h.key] = typeof h.value === "function" ? h.value(item) : item[h.key]; });
+        return r;
+      });
+      exportToExcelLikeCsv(this.getExportFileName(), headers, mappedRows);
+    },
+    getExportFileName() {
+      return this.$route?.path === "/fireRecord" ? "火灾记录" : this.$route?.path === "/place" ? "地点记录" : this.$route?.path === "/device" ? "设备记录" : "检查记录";
+    },
+    getExportHeaders() {
+      if (this.$route?.path === "/fireRecord") return [
+        { key: "startTime", label: "开始时间", value: (i) => this.formatDateTime(i.startTime) },
+        { key: "endTime", label: "结束时间", value: (i) => this.formatDateTime(i.endTime) },
+        { key: "place", label: "地点", value: (i) => this.placeMap[i.placeId] || "未知地点" },
+        { key: "fireFlag", label: "起火", value: (i) => i.fireFlag === 1 ? "是" : "否" },
+        { key: "smokeFlag", label: "烟雾", value: (i) => i.smokeFlag === 1 ? "有" : "无" },
+        { key: "reason", label: "原因" },
+        { key: "situation", label: "情况" }
+      ];
+      if (this.$route?.path === "/place") return [
+        { key: "name", label: "地点名称" },{ key: "province", label: "省份" },{ key: "town", label: "市" },{ key: "area", label: "区" },{ key: "address", label: "地址" },{ key: "duty", label: "负责人" },{ key: "duty_tel", label: "负责人手机号" },{ key: "status", label: "状态", value: (i)=>i.status===1?"启用":"禁用" }
+      ];
+      if (this.$route?.path === "/device") return [
+        { key: "name", label: "设备编号" },{ key: "place", label: "地点", value:(i)=>this.placeMap[i.place_id]||"未知地点" },{ key: "res", label: "资源" },{ key: "duty", label: "负责人" },{ key: "duty_tel", label: "负责人手机号" },{ key: "check_time", label: "检查时间", value:(i)=>this.formatDateTime(i.check_time) },{ key: "status", label: "状态", value:(i)=>i.status===1?"启用":"禁用" }
+      ];
+      return [
+        { key: "duty", label: "责任人" },{ key: "duty_tel", label: "责任人联系方式" },{ key: "place", label: "地点", value:(i)=>this.placeMap[i.place]||"" },{ key: "d_time", label: "持续时间(h)" },{ key: "time", label: "检查时间" },{ key: "score", label: "评分", value:(i)=>this.scoreLabel?this.scoreLabel(i.score):i.score },{ key: "situation", label: "情况" }
+      ];
+    },
     // 获取地点列表
     async fetchLocations() {
       try {
