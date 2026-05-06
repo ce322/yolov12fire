@@ -239,6 +239,7 @@ public class FireServiceImpl extends ServiceImpl<FireMapper, FireDO>
                     .startTime(startTime)
                     .endTime(endTime)
                     .videoId(videoDO.getId())
+                    .pic(getThumbnailUrl(videoDO.getThumbnail()))
                     .userId(videoDO.getUserId()) // 从视频记录同步用户ID
                     .build();
             

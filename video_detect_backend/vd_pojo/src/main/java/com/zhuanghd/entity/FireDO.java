@@ -19,7 +19,7 @@ public class FireDO implements Serializable {
     private Long id;
 
     @TableField(value = "pic")
-    private Long pic;
+    private String pic;
 
     @TableField(value = "start_time")
     private Date startTime;
