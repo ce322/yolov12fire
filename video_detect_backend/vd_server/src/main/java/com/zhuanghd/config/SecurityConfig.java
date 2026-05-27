@@ -12,11 +12,14 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -70,6 +73,11 @@ public class SecurityConfig {
 	}
 
 	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer(HttpFirewall httpFirewall) {
+		return (web) -> web.httpFirewall(httpFirewall);
+	}
+
+	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 				.cors(cors -> cors.configurationSource(corsConfigurationSource())) // 启用 CORS
@@ -85,6 +93,12 @@ public class SecurityConfig {
 				.antMatchers("/videos/**").permitAll()
 				.antMatchers("/thumbnails/**").permitAll()
 				.antMatchers("/doc.html").permitAll()
+				.antMatchers("/swagger-ui.html").permitAll()
+				.antMatchers("/swagger-ui/**").permitAll()
+				.antMatchers("/webjars/**").permitAll()
+				.antMatchers("/v2/api-docs").permitAll()
+				.antMatchers("/swagger-resources/**").permitAll()
+				.antMatchers("/csrf").permitAll()
 				// 黑名单
 				.anyRequest().authenticated()   //其他所有请求都需要认证
 				.and()
@@ -93,6 +107,12 @@ public class SecurityConfig {
 				.addFilterAfter(jwtAuthenticationTokenFilter, LogoutFilter.class)
 		;
 		return http.build();
+	}
+
+
+	@Bean
+	public HttpFirewall httpFirewall() {
+		return new DefaultHttpFirewall();
 	}
 
 	@Bean
